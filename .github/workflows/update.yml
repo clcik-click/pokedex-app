@@ -17,6 +17,4 @@ jobs:
           eas-cache: false
 
       - run: npm ci
-
-      # Set CI=1, don't use --non-interactive, and avoid web by targeting native platforms
-      - run: CI=1 eas update --auto --platform ios,android
+      - run: CI=1 eas update --auto --platform all
