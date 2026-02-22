@@ -5,13 +5,16 @@ import {
   FlatList,
   Pressable,
   ActivityIndicator,
+  Image,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { usePokedexStore } from "../../zustand/pokedexStore";
 import MyCard from "../../components/my_card";
 import MyFilter from "../../components/my_filter";
 import MySearch from "../../components/my_search";
-import { Image } from "react-native";
 
 const ALL_TYPES = [
   "grass",
@@ -35,7 +38,13 @@ const ALL_TYPES = [
 ];
 
 export default function Index() {
-  const { items, loading, error, hasMore, fetchNextPage } = usePokedexStore();
+  const insets = useSafeAreaInsets();
+
+  const items = usePokedexStore((s) => s.items);
+  const loading = usePokedexStore((s) => s.loading);
+  const error = usePokedexStore((s) => s.error);
+  const hasMore = usePokedexStore((s) => s.hasMore);
+  const fetchNextPage = usePokedexStore((s) => s.fetchNextPage);
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -55,13 +64,11 @@ export default function Index() {
   const filtered = useMemo(() => {
     let list = items;
 
-    // type filter
     if (selectedTypes.length > 0) {
       const set = new Set(selectedTypes);
       list = list.filter((p) => (p.types ?? []).some((t) => set.has(t)));
     }
 
-    // search filter (name or id)
     const q = query.trim().toLowerCase();
     if (q.length > 0) {
       const digits = q.replace("#", "");
@@ -77,8 +84,11 @@ export default function Index() {
     return list;
   }, [items, selectedTypes, query]);
 
+  const bottomPad = 16 + insets.bottom; // <- key
+
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    // ✅ top-only safe area so bottom isn't "cut off"
+    <SafeAreaView edges={["top"]} className="flex-1 bg-slate-50">
       <View className="flex-1 px-5 pt-4">
         {/* watermark */}
         <View className="absolute -right-24 -top-24 h-72 w-72 rounded-full overflow-hidden opacity-5">
@@ -95,14 +105,12 @@ export default function Index() {
           <View className="h-11 w-11" />
         </View>
 
-        {/* Search bar (component) */}
         <MySearch
           value={query}
           onChange={setQuery}
           onClear={() => setQuery("")}
         />
 
-        {/* Error */}
         {error ? (
           <View className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3">
             <Text className="text-red-700 font-semibold">Failed to load</Text>
@@ -116,16 +124,17 @@ export default function Index() {
           </View>
         ) : null}
 
-        {/* Grid */}
         <FlatList
           data={filtered}
           keyExtractor={(item) => String(item.id)}
           numColumns={2}
           columnWrapperStyle={{ gap: 16 }}
-          contentContainerStyle={{ gap: 16, paddingBottom: 120 }}
+          contentContainerStyle={{
+            gap: 16,
+            paddingBottom: 90 + bottomPad, // ✅ list can scroll past home bar
+          }}
           onEndReachedThreshold={0.6}
           onEndReached={() => {
-            // If user is searching/filtering, avoid auto-fetch spam
             if (query.trim().length > 0 || selectedTypes.length > 0) return;
             if (!loading && hasMore) fetchNextPage();
           }}
@@ -165,11 +174,12 @@ export default function Index() {
           )}
         />
 
-        {/* FAB filter */}
+        {/* ✅ FAB moved up by safe-area bottom */}
         <Pressable
           onPress={() => setFilterOpen(true)}
-          className="absolute right-6 bottom-8 h-14 w-14 rounded-full items-center justify-center shadow-lg"
+          className="absolute right-6 h-14 w-14 rounded-full items-center justify-center shadow-lg"
           style={{
+            bottom: 16 + insets.bottom,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.25,
@@ -184,7 +194,6 @@ export default function Index() {
           />
         </Pressable>
 
-        {/* Filter Component */}
         <MyFilter
           visible={filterOpen}
           selectedTypes={selectedTypes}
