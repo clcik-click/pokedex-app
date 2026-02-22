@@ -1,9 +1,16 @@
-name: EAS Build (release)
+name: EAS Build (manual)
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "android | ios | all"
+        required: true
+        default: "all"
+      profile:
+        description: "development | preview | production"
+        required: true
+        default: "preview"
 
 jobs:
   build:
@@ -11,12 +18,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@main
         with:
           token: ${{ secrets.EXPO_TOKEN }}
           eas-version: latest
+          expo-cache: false
+          eas-cache: false
 
       - run: npm ci
 
-      - run: eas build -p android --profile production --non-interactive
-      - run: eas build -p ios --profile production --non-interactive
+      - name: Build
+        run: |
+          if [ "${{ inputs.platform }}" = "android" ]; then
+            eas build -p android --profile ${{ inputs.profile }} --non-interactive
+          elif [ "${{ inputs.platform }}" = "ios" ]; then
+            eas build -p ios --profile ${{ inputs.profile }} --non-interactive
+          else
+            eas build -p android --profile ${{ inputs.profile }} --non-interactive
+            eas build -p ios --profile ${{ inputs.profile }} --non-interactive
+          fi

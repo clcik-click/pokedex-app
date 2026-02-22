@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@main
         with:
           token: ${{ secrets.EXPO_TOKEN }}
           eas-version: latest
