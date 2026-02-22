@@ -1,0 +1,19 @@
+name: EAS Update (OTA)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: expo/expo-github-action@v9
+        with:
+          token: ${{ secrets.EXPO_TOKEN }}
+          eas-version: latest
+
+      # Publishes an update to the default branch (often "main")
+      - run: eas update --auto

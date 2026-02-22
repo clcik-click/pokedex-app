@@ -1,0 +1,27 @@
+name: EAS Build (Store)
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # v1.2.3
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: expo/expo-github-action@v9
+        with:
+          token: ${{ secrets.EXPO_TOKEN }}
+          eas-version: latest
+
+      # Android build
+      - run: eas build -p android --profile production --non-interactive
+
+      # iOS build (EAS remote build works from Linux runners too)
+      - run: eas build -p ios --profile production --non-interactive
+
+      # If you want auto-submit, you can add:
+      # - run: eas submit -p android --profile production --non-interactive
+      # - run: eas submit -p ios --profile production --non-interactive
