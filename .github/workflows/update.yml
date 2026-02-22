@@ -13,10 +13,8 @@ jobs:
         with:
           token: ${{ secrets.EXPO_TOKEN }}
           eas-version: latest
-          # GitHub cache service was failing; disable caches to avoid random failures
-          npm-cache: false
           expo-cache: false
+          eas-cache: false
 
       - run: npm ci
-
       - run: eas update --auto --non-interactive
