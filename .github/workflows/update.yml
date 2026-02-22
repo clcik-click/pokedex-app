@@ -1,8 +1,7 @@
-name: EAS Update (OTA)
+name: EAS Update (manual)
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   update:
@@ -15,5 +14,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           eas-version: latest
 
-      # Publishes an update to the default branch (often "main")
-      - run: eas update --auto
+      - run: npm ci
+
+      # Run an OTA update when YOU click "Run workflow"
+      - run: eas update --auto --non-interactive

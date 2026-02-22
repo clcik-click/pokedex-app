@@ -1,9 +1,9 @@
-name: EAS Build (Store)
+name: EAS Build (release)
 
 on:
   push:
     tags:
-      - "v*.*.*" # v1.2.3
+      - "v*.*.*"
 
 jobs:
   build:
@@ -16,12 +16,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           eas-version: latest
 
-      # Android build
+      - run: npm ci
+
       - run: eas build -p android --profile production --non-interactive
-
-      # iOS build (EAS remote build works from Linux runners too)
       - run: eas build -p ios --profile production --non-interactive
-
-      # If you want auto-submit, you can add:
-      # - run: eas submit -p android --profile production --non-interactive
-      # - run: eas submit -p ios --profile production --non-interactive
