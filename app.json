@@ -13,9 +13,13 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "scheme": "pokedexhl",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lamho.pokedexapp"
+      "bundleIdentifier": "com.lamho.pokedexapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.lamho.pokedexapp",

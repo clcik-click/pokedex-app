@@ -2,6 +2,24 @@ name: EAS Update (manual)
 
 on:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: "android | ios | all"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - android
+          - ios
+      message:
+        description: "Update message (shows in EAS / Expo dashboard)"
+        required: false
+        default: ""
+      branch:
+        description: "EAS update branch (usually 'main' or 'production')"
+        required: false
+        default: "main"
 
 jobs:
   update:
@@ -9,12 +27,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: expo/expo-github-action@main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
         with:
           token: ${{ secrets.EXPO_TOKEN }}
           eas-version: latest
-          expo-cache: false
-          eas-cache: false
 
       - run: npm ci
-      - run: CI=1 eas update --auto --platform all
+
+      - name: EAS Update
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          MSG: ${{ inputs.message }}
+          BRANCH: ${{ inputs.branch }}
+        run: |
+          set -e
+
+          if [ -n "$MSG" ]; then
+            eas update --auto --platform "$PLATFORM" --branch "$BRANCH" --message "$MSG" --non-interactive
+          else
+            eas update --auto --platform "$PLATFORM" --branch "$BRANCH" --non-interactive
+          fi

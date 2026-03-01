@@ -7,10 +7,20 @@ on:
         description: "android | ios | all"
         required: true
         default: "all"
+        type: choice
+        options:
+          - all
+          - android
+          - ios
       profile:
         description: "development | preview | production"
         required: true
         default: "preview"
+        type: choice
+        options:
+          - development
+          - preview
+          - production
 
 jobs:
   build:
@@ -18,22 +28,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: expo/expo-github-action@main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
         with:
           token: ${{ secrets.EXPO_TOKEN }}
           eas-version: latest
-          expo-cache: false
-          eas-cache: false
 
       - run: npm ci
 
       - name: Build
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          PROFILE: ${{ inputs.profile }}
         run: |
-          if [ "${{ inputs.platform }}" = "android" ]; then
-            eas build -p android --profile ${{ inputs.profile }} --non-interactive
-          elif [ "${{ inputs.platform }}" = "ios" ]; then
-            eas build -p ios --profile ${{ inputs.profile }} --non-interactive
+          set -e
+
+          if [ "$PLATFORM" = "android" ]; then
+            eas build -p android --profile "$PROFILE" --non-interactive
+          elif [ "$PLATFORM" = "ios" ]; then
+            eas build -p ios --profile "$PROFILE" --non-interactive
           else
-            eas build -p android --profile ${{ inputs.profile }} --non-interactive
-            eas build -p ios --profile ${{ inputs.profile }} --non-interactive
+            eas build -p android --profile "$PROFILE" --non-interactive
+            eas build -p ios --profile "$PROFILE" --non-interactive
           fi
