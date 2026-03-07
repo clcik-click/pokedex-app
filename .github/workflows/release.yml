@@ -1,4 +1,4 @@
-name: EAS Build (manual)
+name: EAS Build + Submit (manual)
 
 on:
   workflow_dispatch:
@@ -6,25 +6,33 @@ on:
       platform:
         description: "android | ios | all"
         required: true
-        default: "all"
+        default: "ios"
         type: choice
         options:
           - all
           - android
           - ios
+
       profile:
         description: "development | preview | production"
         required: true
-        default: "preview"
+        default: "production"
         type: choice
         options:
           - development
           - preview
           - production
 
+      submit_ios:
+        description: "Submit iOS build to TestFlight after build"
+        required: true
+        default: false
+        type: boolean
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -55,3 +63,7 @@ jobs:
             eas build -p android --profile "$PROFILE" --non-interactive
             eas build -p ios --profile "$PROFILE" --non-interactive
           fi
+
+      - name: Submit latest iOS build to TestFlight
+        if: ${{ inputs.submit_ios && (inputs.platform == 'ios' || inputs.platform == 'all') }}
+        run: eas submit -p ios --latest --non-interactive
