@@ -101,7 +101,9 @@ export default function Index() {
 
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-3xl font-bold text-slate-900">Pokedex</Text>
+          <Text className="text-3xl font-bold text-slate-900">
+            Pokedex v1.0.1
+          </Text>
           <View className="h-11 w-11" />
         </View>
 
