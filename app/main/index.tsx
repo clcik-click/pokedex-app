@@ -16,6 +16,8 @@ import MyCard from "../../components/my_card";
 import MyFilter from "../../components/my_filter";
 import MySearch from "../../components/my_search";
 
+import * as Updates from "expo-updates";
+
 const ALL_TYPES = [
   "grass",
   "fire",
@@ -103,6 +105,15 @@ export default function Index() {
         <View className="flex-row items-center justify-between mb-4">
           <Text className="text-3xl font-bold text-slate-900">Pokedex</Text>
           <View className="h-11 w-11" />
+        </View>
+
+        {/* for testing */}
+        <View className="mb-3">
+          <Text>Channel: {Updates.channel ?? "null"}</Text>
+          <Text>Runtime: {Updates.runtimeVersion ?? "null"}</Text>
+          <Text>Update ID: {Updates.updateId ?? "embedded/null"}</Text>
+          <Text>Created: {String(Updates.createdAt ?? "none")}</Text>
+          <Text className="text-red-600 font-bold">OTA TEST 3</Text>
         </View>
 
         <MySearch
