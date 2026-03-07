@@ -4,22 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       platform:
-        description: "android | ios | all"
+        description: "android | ios"
         required: true
-        default: "all"
+        default: "ios"
         type: choice
         options:
-          - all
           - android
           - ios
+      channel:
+        description: "EAS update channel"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - development
+          - preview
+          - production
       message:
-        description: "Update message (shows in EAS / Expo dashboard)"
+        description: "Update message"
         required: false
         default: ""
-      branch:
-        description: "EAS update branch (usually 'main' or 'production')"
-        required: false
-        default: "main"
 
 jobs:
   update:
@@ -42,13 +46,13 @@ jobs:
       - name: EAS Update
         env:
           PLATFORM: ${{ inputs.platform }}
+          CHANNEL: ${{ inputs.channel }}
           MSG: ${{ inputs.message }}
-          BRANCH: ${{ inputs.branch }}
         run: |
           set -e
 
           if [ -n "$MSG" ]; then
-            eas update --auto --platform "$PLATFORM" --branch "$BRANCH" --message "$MSG" --non-interactive
+            eas update --platform "$PLATFORM" --channel "$CHANNEL" --message "$MSG" --non-interactive
           else
-            eas update --auto --platform "$PLATFORM" --branch "$BRANCH" --non-interactive
+            eas update --platform "$PLATFORM" --channel "$CHANNEL" --non-interactive
           fi
