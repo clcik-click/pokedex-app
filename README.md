@@ -118,6 +118,8 @@ Important fileds to verify:
 - android.package
 - owner
 - extra.eas.projectId
+- userInterfaceStyle
+- runtimeVersion
 
 Example:
 ```bash
@@ -128,17 +130,44 @@ Example:
     "platforms": ["ios", "android"],
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/18b4d0e8-1f90-4425-b371-9e4d9c8811ab"
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "scheme": "pokedexhl",
     "ios": {
+      "supportsTablet": true,
       "bundleIdentifier": "com.lamho.pokedexapp",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.lamho.pokedexapp"
+      "package": "com.lamho.pokedexapp",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
     },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": ["expo-router"],
     "extra": {
+      "router": {},
       "eas": {
         "projectId": "18b4d0e8-1f90-4425-b371-9e4d9c8811ab"
       }
@@ -203,7 +232,7 @@ Used when:
 File: .github/workflows/ci.yml
 
 ```bash
-name: EAS Build (manual)
+name: EAS Build + Submit (manual)
 
 on:
   workflow_dispatch:
@@ -211,25 +240,33 @@ on:
       platform:
         description: "android | ios | all"
         required: true
-        default: "all"
+        default: "ios"
         type: choice
         options:
           - all
           - android
           - ios
+
       profile:
         description: "development | preview | production"
         required: true
-        default: "preview"
+        default: "production"
         type: choice
         options:
           - development
           - preview
           - production
 
+      submit_ios:
+        description: "Submit iOS build to TestFlight after build"
+        required: true
+        default: false
+        type: boolean
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -260,6 +297,10 @@ jobs:
             eas build -p android --profile "$PROFILE" --non-interactive
             eas build -p ios --profile "$PROFILE" --non-interactive
           fi
+
+      - name: Submit latest iOS build to TestFlight
+        if: ${{ inputs.submit_ios && (inputs.platform == 'ios' || inputs.platform == 'all') }}
+        run: eas submit -p ios --latest --non-interactive
 ```
 
 # 9. OTA Update Workflow (update.yml)
@@ -280,22 +321,26 @@ on:
   workflow_dispatch:
     inputs:
       platform:
-        description: "android | ios | all"
+        description: "android | ios"
         required: true
-        default: "all"
+        default: "ios"
         type: choice
         options:
-          - all
           - android
           - ios
+      channel:
+        description: "EAS update channel"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - development
+          - preview
+          - production
       message:
         description: "Update message"
         required: false
         default: ""
-      branch:
-        description: "EAS update branch"
-        required: false
-        default: "main"
 
 jobs:
   update:
@@ -318,18 +363,15 @@ jobs:
       - name: EAS Update
         env:
           PLATFORM: ${{ inputs.platform }}
+          CHANNEL: ${{ inputs.channel }}
           MSG: ${{ inputs.message }}
-          BRANCH: ${{ inputs.branch }}
         run: |
           set -e
 
-          if [ "$PLATFORM" = "android" ]; then
-            eas update --auto --platform android --branch "$BRANCH" --message "$MSG" --non-interactive
-          elif [ "$PLATFORM" = "ios" ]; then
-            eas update --auto --platform ios --branch "$BRANCH" --message "$MSG" --non-interactive
+          if [ -n "$MSG" ]; then
+            eas update --platform "$PLATFORM" --channel "$CHANNEL" --message "$MSG" --non-interactive
           else
-            eas update --auto --platform android --branch "$BRANCH" --message "$MSG" --non-interactive
-            eas update --auto --platform ios --branch "$BRANCH" --message "$MSG" --non-interactive
+            eas update --platform "$PLATFORM" --channel "$CHANNEL" --non-interactive
           fi
 ```
 
